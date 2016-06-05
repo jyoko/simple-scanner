@@ -12,9 +12,9 @@ node scanner.js scanthissite.com 1-500 100
 
 Will check for standard ssh/http/https servers and try to identify them, then do a TCP Connect scan on ports 1-500 with 100 concurrent sockets.
 
-Host is required (domain/IPv4/IPv6 supported per Node native modules)
-Range is optional (defaults `1-1000`)
-Max parallel connections is optional (defaults `12`)
+* Host is required (domain/IPv4/IPv6 supported per Node native modules)
+* Range is optional (defaults `1-1000`)
+* Max parallel connections is optional (defaults `12`)
 
 ## Fingerprinting & Detection 
 
@@ -29,11 +29,11 @@ The scanning option searches for open ports that respond to HTTP (plaintext and 
 * Comment containing "Wordpress" (mostly plugins)
 * wp-strings, default reference locations to content files
 
-Inside the code is an unworking function that would additionally check for known Wordpress files, but the above works for demonstrative purposes.
+Inside the code is an unworking function that would additionally check for known Wordpress files, the string search works well enough for this script.
 
 ## Other Notes
 
-This was written more in the style of a throwaway script or example than a serious module. Node is a terrible choice for a general-purpose port scanner. Use `nmap -sV` for better service identification, nevermind advanced timing and techniques that will likely never be usable in JS (unless someone hacks in low-level socket access). For wargames or testing applications, though, it's great to hack little scripts in Node and get the easy speed boost of the usual async coding patterns. I might add a repo with that kind of thing I've written for wargames and such...
+This was written more in the style of a throwaway script or example than a serious module. Node is a terrible choice for a general-purpose port scanner. Use `nmap -sV` for better service identification, nevermind advanced timing and techniques that will likely never be usable in JS (unless someone hacks in low-level socket access). For wargames or testing applications, though, it's great to hack little scripts in Node and get the easy speed boost of the usual async coding patterns. I might add a repo with more examples that I've written for wargames and such...
 
 The Wordpress identification could be useful spun off as an actual module.
 
