@@ -1,0 +1,24 @@
+{
+  "name": "simple-scanner",
+  "version": "0.3.0",
+  "description": "Simple port scanner and Wordpress enumerator",
+  "main": "index.js",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "request": "^2.72.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jyoko/simple-scanner.git"
+  },
+  "author": "jyoko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jyoko/simple-scanner/issues"
+  },
+  "homepage": "https://github.com/jyoko/simple-scanner#readme"
+}

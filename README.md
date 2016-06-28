@@ -1,48 +1,61 @@
-# Simple Scanner
+# Simple Scanner (revised)
 
-Naively identify core server utilities and scan for Wordpress with no dependencies in Node!  Warning: This is a **NOISY** scanner and you can easily cause network issues or get yourself blocked. Code is short and heavily annotated, take a look.
+Naively identify core server utilities and scan for Wordpress with no dependencies in Node!  Warning: This is a **NOISY** scanner and you can easily cause network issues or get yourself blocked.
 
 ## Usage
 
-Requires modern Node (4+?), uses template strings & arrow functions.
+Requires modern Node (4+?), uses template strings, arrow functions, `class`, and default params (possibly others, but modern v8 compatible).
 
 ```sh
-node scanner.js scanthissite.com 1-500 100
+$ npm install
 ```
 
-Will check for standard ssh/http/https servers and try to identify them, then do a TCP Connect scan on ports 1-500 with 100 concurrent sockets.
+For [request](https://github.com/request/request) used in WPScanner and [commander](https://github.com/tj/commander.js) used in example-scan.
 
-* Host is required (domain/IPv4/IPv6 supported per Node native modules)
-* Range is optional (defaults `1-1000`)
-* Max parallel connections is optional (defaults `12`)
+```sh
+$ ./example-scanner.js -h scanthissite.com
+```
+
+Full help text:
+
+```sh
+  Usage: example-scan [options]
+
+  Options:
+
+    -h, --help               output usage information
+    -V, --version            output the version number
+    -h, --host <host>        The host to scan
+    -p, --ports [22,80,443]  Enter a comma-delimited list of port numbers (will override range)
+    -r, --range [1-1000]     Enter a range of ports (default: 1-1000)
+    -i, --interval [1]       For use with --range, enter an interval (default: 1)
+    -m, --maxParallel [12]   Max parallel connections
+    -v, --verbose            More status updates
+```
+
+## Scanning Methods
+
+The example script first runs a connect scan (using Node's built-in net) over the entire range of ports and saves any banners sent from the server during this probe. From the initial scan, any open ports that _did not_ send a banner will be probed via HTTP(S) for Wordpress markers.
 
 ## Fingerprinting & Detection 
 
 The methods used are extremely basic, but mostly effective.
 
-It attempts to identify what's running on 22/80/443 by checking `Server` headers on the HTTP(S) ports and reading any response on SSH (hope the daemon is friendly and identifies itself).
+Any self-identifying server banner will be reported and the initial Server HTTP header response is saved to avoid false information from later probes. Additionally, the WPScanner uses an iPhone user agent to avoid simple bot detection.
 
-The scanning option searches for open ports that respond to HTTP (plaintext and via SSL/TLS), then scans the responses looking for strings that suggest Wordpress. Those include:
+WPScanner attempts to confirm a Wordpress server via:
 
 * Meta generator tag
 * "Powered By Wordpress"
 * Comment containing "Wordpress" (mostly plugins)
 * wp-strings, default reference locations to content files
+* the existence of /wp-admin or /wp-login.php
+* a license.txt or readme.html containing the string "wordpress"
 
-Inside the code is an unworking function that would additionally check for known Wordpress files, the string search works well enough for this script.
-
-## Other Notes
-
-This was written more in the style of a throwaway script or example than a serious module. Node is a terrible choice for a general-purpose port scanner. Use `nmap -sV` for better service identification, nevermind advanced timing and techniques that will likely never be usable in JS (unless someone hacks in low-level socket access). For wargames or testing applications, though, it's great to hack little scripts in Node and get the easy speed boost of the usual async coding patterns. I might add a repo with more examples that I've written for wargames and such...
-
-The Wordpress identification could be useful spun off as an actual module.
-
-If you're still interested and read this far then take a look at the code. It's only ~250 lines and I put tons of comments and commentary in there. Probably won't make up for the hacky code and lack of structure, but you'll hopefully find it entertaining!
+In the next update there will be more detection methods and the WPScanner will be cleaned up, the original didn't transfer well.
 
 ## Known Issues
 
-* If you give a bad (nonexistent/unreachable but valid) host you'll get spammed with errors, it doesn't end gracefully.
 * No support for scanning multiple hosts
 * No backoff and retries, sometimes leading to bad results (imagine throwing rocks to see if someone left any windows open)
-* Reports results at end, you won't get running feedback
 
