@@ -1,0 +1,6 @@
+[
+  "(?:name=['\"]*generator['\"]* content=['\"]*wordpress)",
+  "(?:wp\\-\\w+)",
+  "(?:powered by wordpress)",
+  "(?:<!--.+wordpress.+-->)"
+]
