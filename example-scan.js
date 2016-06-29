@@ -90,7 +90,7 @@ var statusUpdate = function(scanHeader, alertOnOpen) {
   var count = 0;
   var percent = 0;
   var previous = 0;
-  var length = checkPorts.portList.length;
+  var length = portScan.portList.length;
   var jumpToDisplay = program.verbose? 4 : 19;
   return function(result) {
     count++;
@@ -113,7 +113,14 @@ function prettyPrint(o) {
 
   var output = p10(o.port.toString())+' : ';
   for (var k in o.data) {
-    output += `${pad(12,k)} : ${o.data[k]}\n`;
+    // in case of multiple servers reported by wpScan
+    if (Array.isArray(o.data[k])) {
+      keyValue = o.data[k].join(' & ');
+    } else {
+      keyValue = o.data[k];
+    }
+
+    output += `${pad(12,k)} : ${keyValue}\n`;
     output += pad(13,'');
   }
   console.log(output);
@@ -124,19 +131,19 @@ function prettyPrint(o) {
  *
  */
 
-var checkPorts = new PortScanner(config);
+var portScan = new PortScanner(config);
 
-checkPorts.on('error', onError);
+portScan.on('error', onError);
 
-checkPorts.on('ready', function() {
+portScan.on('ready', function() {
   console.log('Starting initial scan');
   startTime = Date.now();
-  checkPorts.scan();
+  portScan.scan();
 });
 
-checkPorts.on('portFinished', statusUpdate('INITIAL SCAN', true));
+portScan.on('portFinished', statusUpdate('INITIAL SCAN', true));
     
-checkPorts.on('complete', function(results) {
+portScan.on('complete', function(results) {
 
   console.log(`Initial scan completed in ${secondsFromNow(startTime)} seconds`);
 
@@ -171,19 +178,19 @@ function doWPScan(previousResults) {
     return;
   }
 
-  var checkWP = new WPScanner(config);
+  var wpScan = new WPScanner(config);
 
-  checkWP.on('error', onError);
+  wpScan.on('error', onError);
 
-  checkWP.on('ready', function() {
+  wpScan.on('ready', function() {
     startTime = Date.now();
     console.log('Starting WP probe');
-    checkWP.scan();
+    wpScan.scan();
   });
 
-  checkWP.on('portFinished', statusUpdate('WP SCAN'));
+  wpScan.on('portFinished', statusUpdate('WP SCAN'));
 
-  checkWP.on('complete', function(results) {
+  wpScan.on('complete', function(results) {
     console.log(`WP scan completed in ${secondsFromNow(startTime)} seconds`);
     console.log(`Results for ${program.host}:`);
     var finalResults = results.concat(previousResults.noScan).sort(portSort);

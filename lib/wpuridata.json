@@ -1,0 +1,9 @@
+{
+  "uris": [
+    "wp-admin",
+    "wp-login.php",
+    "license.txt",
+    "readme.html"
+  ],
+  "onlyWpStringIndex": 2
+}
