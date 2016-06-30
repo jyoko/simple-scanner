@@ -18,7 +18,7 @@ $ ./simple-scanner.js scanthissite.com
 
 Full help text:
 
-```sh
+```
   Usage: simple-scanner <host> [options]
 
   Options:
@@ -47,13 +47,13 @@ Full help text:
 
 The default scan first runs a connect scan (using Node's built-in net) over the entire range of ports and saves any banners sent from the server during this probe. From the initial scan, any open ports that _did not_ send a banner will be probed via HTTP(S) for Wordpress markers.
 
-## Connect -C
+### Connect -C
 
 Uses Node's Net library to attempt to connect to specified ports on the host. Reports any open ports and banners sent.
 
 Code in `lib/PortScanner.js`
 
-## Wordpress -w
+### Wordpress -w
 
 Uses request to probe for HTTP(S) servers and attempts to enumerate a Wordpress instance via:
 
@@ -66,7 +66,7 @@ Uses request to probe for HTTP(S) servers and attempts to enumerate a Wordpress 
 
 Code in `lib/WPProbe.js`
 
-## UDP -U
+### UDP -U
 
 **Requires privileged user**
 
