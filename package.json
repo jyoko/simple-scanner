@@ -1,13 +1,15 @@
 {
   "name": "simple-scanner",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Simple port scanner and Wordpress enumerator",
-  "main": "index.js",
+  "main": "simple-scanner.js",
   "dependencies": {
     "commander": "^2.9.0",
     "request": "^2.72.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "raw-socket": "^1.5.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
