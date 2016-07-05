@@ -32,6 +32,7 @@ Full help text:
     -w, --wordpress          Do only wordpress probe on indicated ports
     -b, --baseuri [wp]       URI to use as base for wordpress probe
     -U, --udp                Do only UDP scan - WARNING: experimental, slow, likely requires root
+    -S, --syn                Do only SYN (half-open) scan - WARNING: experimental, in-progress
     -C, --connect            Do only connect scan
     -v, --verbose            More status updates
 
@@ -41,6 +42,7 @@ Full help text:
 
   Other scan types are experimental and may not work as-intended on all
   operating systems.
+
 ```
 
 ## Scanning Methods
@@ -73,6 +75,14 @@ Code in `lib/WPProbe.js`
 Uses Node's built-in dgram to send UDP datagrams and listen for responses and raw-socket to listen for ICMP response codes. This is ripped directly from [nmap's -sU scan description](https://nmap.org/book/man-port-scanning-techniques.html).
 
 `lib/ICMPWatcher` contains the code that looks for relevant ICMP replies, `lib/UDPScanner` sets up the dgram listener and sends the packets.
+
+### SYN (half-open) -S
+
+**Requires privileged user**
+
+The standard half-open SYN scan - it doesn't complete the handshake. No ICMP response filtering yet and issues scanning a loopback address, but working. Feel free to crank up parallel connections for a faster scan, haven't gotten into setting saner defaults yet (or testing a high load).
+
+`lib/SYNScanner` does the scan logic, but the real magic is in `TCPSocket` and `TCPutils`. The former is the beginning of a generic TCP class for general use and the latter builds/reads TCP segments.
 
 ## Fingerprinting & Detection 
 

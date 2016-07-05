@@ -14,11 +14,12 @@ var program = require('commander');
 var PortScanner = require('./lib/PortScanner');
 var WPScanner = require('./lib/WPScanner');
 var UDPScanner = require('./lib/UDPScanner');
+var SYNScanner = require('./lib/SYNScanner');
 var utilities = require('./lib/utilities');
 var defaultScan = true;
 
 program
-  .version('0.4.0')
+  .version('0.5.0')
   .usage('<host> [options]')
   .option('-p, --ports [22,80,443]', 'Enter a comma-delimited list of port numbers (will override range)', portsFromList)
   .option('-r, --range [1-1000]', 'Enter a range of ports (default: 1-1000)', portsFromRange,{start:1,end:1000})
@@ -27,6 +28,7 @@ program
   .option('-w, --wordpress', 'Do only wordpress probe on indicated ports', false)
   .option('-b, --baseuri [wp]', 'URI to use as base for wordpress probe', '')
   .option('-U, --udp', 'Do only UDP scan - WARNING: experimental, slow, likely requires root', false)
+  .option('-S, --syn', 'Do only SYN (half-open) scan - WARNING: experimental, in-progress', false)
   .option('-C, --connect', 'Do only connect scan', false)
 // TODO .option('--randomize', 'Randomize port order (default is sequential)', false);
   .option('-v, --verbose', 'More status updates', false);
@@ -140,6 +142,7 @@ var config = {
 };
 
 
+// TODO: this flow control
 if (program.wordpress) {
   defaultScan = false;
   doWpScan();
@@ -153,6 +156,11 @@ if (program.udp) {
 if (program.connect) {
   defaultScan = false;
   doConnectScan();
+}
+
+if (program.syn) {
+  defaultScan = false;
+  doSynScan();
 }
 
 if (defaultScan) {
@@ -269,3 +277,41 @@ function doUdpScan() {
 
 }
 
+// see above :-D
+function doSynScan() {
+  console.log(`
+Scanning yourself via loopback (localhost/127.0.0.1) may not work,
+try your network address - ${utilities.getLocalIP()}
+`);
+  var synScan = new SYNScanner(config);
+  synScan.on('error', function(e) {
+    if (e.message === 'Operation not permitted') {
+      console.log('\nSYN scan requires elevated privileges, try sudo\n');
+      process.exit();
+    } else {
+      console.log('ERROR: ');
+      console.log(e);
+    }
+  });
+  synScan.on('ready', function() {
+    synScan.scan();
+  });
+  synScan.on('portFinished', statusUpdate('SYN SCAN', synScan.portList.length));
+  synScan.on('complete', function(results) {
+    // holy ugly results TODO
+    var filteredResults = results.reduce((o,result)=>{
+      if (result.data.status === 'closed') {
+        o[0].data.closed++;
+      }
+      if (result.data.status === 'filtered') {
+        o[1].data.filtered++;
+      }
+      if (result.data.status === 'open') {
+        o.push(result);
+      }
+      return o;
+    }, [{port:'combined',data:{closed:0}},{port:'combined',data:{filtered:0}}]);
+
+    filteredResults.forEach(prettyPrint);
+  });
+}
