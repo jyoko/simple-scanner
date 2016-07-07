@@ -31,9 +31,13 @@ Full help text:
     -m, --maxParallel [12]   Max parallel connections
     -w, --wordpress          Do only wordpress probe on indicated ports
     -b, --baseuri [wp]       URI to use as base for wordpress probe
+    -C, --connect            Do only connect scan
     -U, --udp                Do only UDP scan - WARNING: experimental, slow, likely requires root
     -S, --syn                Do only SYN (half-open) scan - WARNING: experimental, in-progress
-    -C, --connect            Do only connect scan
+    -N, --null               Do only NULL scan - WARNING: experimental
+    -F, --fin                Do only FIN scan - WARNING: experimental
+    -X, --xmas               Do only Xmas scan - WARNING: experimental
+    -A, --ack                Do only ACK scan - WARNING: experimental
     -v, --verbose            More status updates
 
   Default scan is a TCP Connect on ports 1-1000 using Node's Net library,
@@ -42,7 +46,6 @@ Full help text:
 
   Other scan types are experimental and may not work as-intended on all
   operating systems.
-
 ```
 
 ## Scanning Methods
