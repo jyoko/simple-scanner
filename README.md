@@ -80,9 +80,41 @@ Uses Node's built-in dgram to send UDP datagrams and listen for responses and ra
 
 **Requires privileged user**
 
-The standard half-open SYN scan - it doesn't complete the handshake. No ICMP response filtering yet and issues scanning a loopback address, but working. Feel free to crank up parallel connections for a faster scan, haven't gotten into setting saner defaults yet (or testing a high load).
+The standard half-open SYN scan - it doesn't complete the handshake. Known problems scanning a loopback address, will suggest the network address. Feel free to crank up parallel connections for a faster scan, haven't gotten into setting saner defaults yet (or testing a high load).
 
 `lib/SYNScanner` does the scan logic, but the real magic is in `TCPSocket` and `TCPutils`. The former is the beginning of a generic TCP class for general use and the latter builds/reads TCP segments.
+
+### NULL -N
+
+**Requires privileged user**
+
+Null scan, performs exactly like SYN except with no TCP flags set. Due to expected responses, ports can only be marked 'open|filtered' on no response, and filtered for ICMP unreachables in type 3.
+
+`NULLScanner` inherits from SYNScanner with minimal changes (see note in file header).
+
+### FIN -F
+
+**Requires privileged user**
+
+FIN scan, performs exactly like SYN except with the FIN flag set. Due to expected responses, ports can only be marked 'open|filtered' on no response, and filtered for ICMP unreachables in type 3.
+
+`FINScanner` inherits from SYNScanner with minimal changes (see note in file header).
+
+### Xmas -X
+
+**Requires privileged user**
+
+Xmas scan, performs exactly like SYN except with FIN, PSH, and URG flags set. Due to expected responses, ports can only be marked 'open|filtered' on no response, and filtered for ICMP unreachables in type 3.
+
+`XmasScanner` inherits from SYNScanner with minimal changes (see note in file header).
+
+### ACK -A
+
+**Requires privileged user**
+
+ACK scan, performs exactly like SYN except with the ACK flag set. This probe can only determine if ports are 'filtered' or 'unfiltered', RST responses are expected from open or closed ports (indicating 'unfiltered') and ICMP errors or no response imply filtering (not necessarily that the port is closed).
+
+`ACKScanner` inherits from SYNScanner with minimal changes (see note in file header), mostly changing how responses are marked.
 
 ## Fingerprinting & Detection 
 
@@ -97,6 +129,8 @@ More, better detection will be incoming along with the scanning methods we've al
 * No support for scanning multiple hosts
 * No backoff and retries, sometimes leading to bad results (imagine throwing rocks to see if someone left any windows open)
 * Unknown cross-platform support for raw-socket
+* Untested on some ICMP behavior
+* Lacking good test flow - likely needs a custom server to simulate various conditions barring some sort of always-available test lab network
 
 ## Contributing
 

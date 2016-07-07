@@ -15,11 +15,15 @@ var PortScanner = require('./lib/PortScanner');
 var WPScanner = require('./lib/WPScanner');
 var UDPScanner = require('./lib/UDPScanner');
 var SYNScanner = require('./lib/SYNScanner');
+var NULLScanner = require('./lib/NULLScanner');
+var FINScanner = require('./lib/FINScanner');
+var XmasScanner = require('./lib/XmasScanner');
+var ACKScanner = require('./lib/ACKScanner');
 var utilities = require('./lib/utilities');
 var defaultScan = true;
 
 program
-  .version('0.5.0')
+  .version('0.6.0')
   .usage('<host> [options]')
   .option('-p, --ports [22,80,443]', 'Enter a comma-delimited list of port numbers (will override range)', portsFromList)
   .option('-r, --range [1-1000]', 'Enter a range of ports (default: 1-1000)', portsFromRange,{start:1,end:1000})
@@ -27,9 +31,13 @@ program
   .option('-m, --maxParallel [12]', 'Max parallel connections', validPositiveNumber)
   .option('-w, --wordpress', 'Do only wordpress probe on indicated ports', false)
   .option('-b, --baseuri [wp]', 'URI to use as base for wordpress probe', '')
+  .option('-C, --connect', 'Do only connect scan', false)
   .option('-U, --udp', 'Do only UDP scan - WARNING: experimental, slow, likely requires root', false)
   .option('-S, --syn', 'Do only SYN (half-open) scan - WARNING: experimental, in-progress', false)
-  .option('-C, --connect', 'Do only connect scan', false)
+  .option('-N, --null', 'Do only NULL scan - WARNING: experimental', false)
+  .option('-F, --fin', 'Do only FIN scan - WARNING: experimental', false)
+  .option('-X, --xmas', 'Do only Xmas scan - WARNING: experimental', false)
+  .option('-A, --ack', 'Do only ACK scan - WARNING: experimental', false)
 // TODO .option('--randomize', 'Randomize port order (default is sequential)', false);
   .option('-v, --verbose', 'More status updates', false);
 
@@ -163,6 +171,26 @@ if (program.syn) {
   doSynScan();
 }
 
+if (program.null) {
+  defaultScan = false;
+  doNullScan();
+}
+
+if (program.fin) {
+  defaultScan = false;
+  doFinScan();
+}
+
+if (program.xmas) {
+  defaultScan = false;
+  doXmasScan();
+}
+
+if (program.ack) {
+  defaultScan = false;
+  doAckScan();
+}
+
 if (defaultScan) {
   doConnectScan();
 }
@@ -293,7 +321,7 @@ try your network address - ${utilities.getLocalIP()}
       console.log(e);
     }
   });
-  synScan.on('ready', function() {
+  synScan.on('icmpready', function() {
     synScan.scan();
   });
   synScan.on('portFinished', statusUpdate('SYN SCAN', synScan.portList.length));
@@ -311,6 +339,156 @@ try your network address - ${utilities.getLocalIP()}
       }
       return o;
     }, [{port:'combined',data:{closed:0}},{port:'combined',data:{filtered:0}}]);
+
+    filteredResults.forEach(prettyPrint);
+  });
+}
+
+function doNullScan() {
+  console.log(`
+Scanning yourself via loopback (localhost/127.0.0.1) may not work,
+try your network address - ${utilities.getLocalIP()}
+`);
+  var nullScan = new NULLScanner(config);
+  nullScan.on('error', function(e) {
+    if (e.message === 'Operation not permitted') {
+      console.log('\nNULL scan requires elevated privileges, try sudo\n');
+      process.exit();
+    } else {
+      console.log('ERROR: ');
+      console.log(e);
+    }
+  });
+  nullScan.on('icmpready', function() {
+    nullScan.scan();
+  });
+  nullScan.on('portFinished', statusUpdate('NULL SCAN', nullScan.portList.length));
+  nullScan.on('complete', function(results) {
+    // holy ugly results TODO
+    var filteredResults = results.reduce((o,result)=>{
+      if (result.data.status === 'closed') {
+        o[0].data.closed++;
+      }
+      if (result.data.status === 'filtered') {
+        o[1].data.filtered++;
+      }
+      if (result.data.status === 'open|filtered') {
+        o.push(result);
+      }
+      return o;
+    }, [{port:'combined',data:{closed:0}},{port:'combined',data:{filtered:0}}]);
+
+    filteredResults.forEach(prettyPrint);
+  });
+}
+
+function doFinScan() {
+  console.log(`
+Scanning yourself via loopback (localhost/127.0.0.1) may not work,
+try your network address - ${utilities.getLocalIP()}
+`);
+  var finScan = new FINScanner(config);
+  finScan.on('error', function(e) {
+    if (e.message === 'Operation not permitted') {
+      console.log('\nNULL scan requires elevated privileges, try sudo\n');
+      process.exit();
+    } else {
+      console.log('ERROR: ');
+      console.log(e);
+    }
+  });
+  finScan.on('icmpready', function() {
+    finScan.scan();
+  });
+  finScan.on('portFinished', statusUpdate('NULL SCAN', finScan.portList.length));
+  finScan.on('complete', function(results) {
+    // holy ugly results TODO
+    var filteredResults = results.reduce((o,result)=>{
+      if (result.data.status === 'closed') {
+        o[0].data.closed++;
+      }
+      if (result.data.status === 'filtered') {
+        o[1].data.filtered++;
+      }
+      if (result.data.status === 'open|filtered') {
+        o.push(result);
+      }
+      return o;
+    }, [{port:'combined',data:{closed:0}},{port:'combined',data:{filtered:0}}]);
+
+    filteredResults.forEach(prettyPrint);
+  });
+}
+
+
+function doXmasScan() {
+  console.log(`
+Scanning yourself via loopback (localhost/127.0.0.1) may not work,
+try your network address - ${utilities.getLocalIP()}
+`);
+  var xmasScan = new XmasScanner(config);
+  xmasScan.on('error', function(e) {
+    if (e.message === 'Operation not permitted') {
+      console.log('\nNULL scan requires elevated privileges, try sudo\n');
+      process.exit();
+    } else {
+      console.log('ERROR: ');
+      console.log(e);
+    }
+  });
+  xmasScan.on('icmpready', function() {
+    xmasScan.scan();
+  });
+  xmasScan.on('portFinished', statusUpdate('NULL SCAN', xmasScan.portList.length));
+  xmasScan.on('complete', function(results) {
+    // holy ugly results TODO
+    var filteredResults = results.reduce((o,result)=>{
+      if (result.data.status === 'closed') {
+        o[0].data.closed++;
+      }
+      if (result.data.status === 'filtered') {
+        o[1].data.filtered++;
+      }
+      if (result.data.status === 'open|filtered') {
+        o.push(result);
+      }
+      return o;
+    }, [{port:'combined',data:{closed:0}},{port:'combined',data:{filtered:0}}]);
+
+    filteredResults.forEach(prettyPrint);
+  });
+}
+
+function doAckScan() {
+  console.log(`
+Scanning yourself via loopback (localhost/127.0.0.1) may not work,
+try your network address - ${utilities.getLocalIP()}
+`);
+  var ackScan = new ACKScanner(config);
+  ackScan.on('error', function(e) {
+    if (e.message === 'Operation not permitted') {
+      console.log('\nNULL scan requires elevated privileges, try sudo\n');
+      process.exit();
+    } else {
+      console.log('ERROR: ');
+      console.log(e);
+    }
+  });
+  ackScan.on('icmpready', function() {
+    ackScan.scan();
+  });
+  ackScan.on('portFinished', statusUpdate('NULL SCAN', ackScan.portList.length));
+  ackScan.on('complete', function(results) {
+    // holy ugly results TODO
+    var filteredResults = results.reduce((o,result)=>{
+      if (result.data.status === 'filtered') {
+        o[0].data.filtered++;
+      }
+      if (result.data.status === 'unfiltered') {
+        o.push(result);
+      }
+      return o;
+    }, [{port:'combined',data:{filtered:0}}]);
 
     filteredResults.forEach(prettyPrint);
   });
